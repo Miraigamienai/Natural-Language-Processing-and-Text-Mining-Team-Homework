@@ -1,0 +1,31 @@
+# data
+data/
+datasets/
+*.csv
+
+# models
+models/
+*.pt
+*.pth
+
+# logs
+logs/
+*.log
+
+# python
+__pycache__/
+*.pyc
+
+# env
+.env
+venv/
+
+# jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
