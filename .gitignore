@@ -4,6 +4,7 @@ datasets/
 *.csv
 
 # models
+model/
 models/
 *.pt
 *.pth
@@ -19,6 +20,7 @@ __pycache__/
 # env
 .env
 venv/
+.venv*/
 
 # jupyter
 .ipynb_checkpoints/
