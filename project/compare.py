@@ -1,41 +1,25 @@
-import os
-def get_base_dir():
-    try: return os.path.dirname(os.path.abspath(__file__))
-    except NameError: return os.getcwd()
-BASE_DIR = get_base_dir()
-LOG_DIR = os.path.join(BASE_DIR, 'logs')
-CSV_DIR = os.path.join(LOG_DIR, 'csv')
-DATASETS_DIR = os.path.join(BASE_DIR, 'datasets')
+from utils import *
+from sklearn.metrics import f1_score, roc_auc_score
 
-import pandas as pd
-import numpy as np
-data_sub  = pd.read_csv(os.path.join(BASE_DIR, 'submission_lstm_baseline.csv')).sort_values(["rally_uid"])
-data_true = pd.read_csv(os.path.join(DATASETS_DIR, 'Reference_Only_Old_Test_Data', 'test.csv')).sort_values(["rally_uid"])
-data_pred = pd.read_csv(os.path.join(CSV_DIR, '0.3067041.csv')).sort_values(["rally_uid"])
-data_pred = data_sub
-data_true = data_true[["rally_uid","serverGetPoint"]]
-data_pred = data_pred[["rally_uid","serverGetPoint"]]
+pred  = pd.read_csv(OUT2_CSV).sort_values(['rally_uid'])
+label = pd.read_csv(LABEL2_CSV).sort_values(['rally_uid'])
 
-merged = pd.merge(
-    data_pred,
-    data_true,
-    on="rally_uid",
-    how="inner",
-    suffixes=("_pred","_true")
-)
-print(merged)
-n = min(len(data_true), len(data_pred))
-y_true = data_true.iloc[:n]
-y_pred = data_pred.iloc[:n]
-arr = np.stack([y_true, y_pred], axis=-1)
+def score(allA, allAp, allP, allPp, allR, allRp):
+    try:
+        f1A=f1_score(allA,allAp,average="macro") if len(allA) else 0.0
+        f1P=f1_score(allP,allPp,average="macro") if len(allP) else 0.0
+        print(f1_score(allP,allPp,average=None))
+        print(f1_score(allA,allAp,average=None))
+        auc=roc_auc_score(allR,allRp) if len(set(allR))>1 else 0.5
+    except Exception: f1A,f1P,auc=0.0,0.0,0.5
+    final=0.4*f1A+0.4*f1P+0.2*auc
+    return f1A, f1P, auc, final     
 
 
-from sklearn.metrics import roc_auc_score
-auc=roc_auc_score(
-    merged["serverGetPoint_true"],
-    merged["serverGetPoint_pred"]
-)
+assert all(pred['rally_uid'] == label['rally_uid'])
+s = score(label['actionId'], pred['actionId'],
+      label['pointId'], pred['pointId'],
+      label['serverGetPoint'], pred['serverGetPoint'])
 
-print(f"AUC = {auc:.4f}")
+print(s)
 
-print(merged[merged["serverGetPoint_true"].astype(bool) != (merged["serverGetPoint_pred"]>=0.5)])
