@@ -37,7 +37,7 @@ def df_to_csv(rally_uids, actionIds, pointIds, serverGetPoints, out_path):
     pred_df.to_csv(out_path, index=False)
 
 
-def encode_frame(df, features, cats):
+def encode_frame(df, features, features2, cats):
     outs=[]
     for col in features:
         s = df[col].astype(str)
@@ -45,7 +45,12 @@ def encode_frame(df, features, cats):
         codes = (pd.Categorical(s,categories=cats[col]).codes+1)
         outs.append(np.asarray(codes,dtype=np.int64))
     assert all([all(x!=0) for x in outs])
-    return np.stack(outs,axis=1)
+    
+    outs2 = []
+    for col in features2:
+        f = df[col].astype(float)
+        outs2.append(f)
+    return np.stack(outs,axis=1), np.stack(outs2,axis=1)
 
 
 def get_categories(features, df):
